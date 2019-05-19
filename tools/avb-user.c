@@ -23,7 +23,7 @@
 #include "avpdu.h"
 
 #include <jdksavdecc.h>
-#include <../kernel_module/igb/avb-config.h>
+#include <../kernel-module/igb/avb-config.h>
 
 #define CLASS_A_ID 6
 #define CLASS_A_VLAN 2
@@ -983,7 +983,7 @@ void handle_acmp_connect_tx_command(int sock, char *buffer, int len)
 
     struct jdksavdecc_eui64 stream_id;
 
-    jdksavdecc_eui64_init_from_uint64(&stream_id, mac_to_stream_id(own_mac_address)));
+    jdksavdecc_eui64_init_from_uint64(&stream_id, mac_to_stream_id(own_mac_address, 0));
     jdksavdecc_common_control_header_set_stream_id(stream_id, buffer, HEADER_OFFSET);
     
     struct jdksavdecc_eui48 dst_mac;
@@ -1034,7 +1034,7 @@ void handle_acmp_get_rx_state_command(int sock, char *buffer, int len)
 
     struct jdksavdecc_eui64 stream_id;
 
-    uint64_t uint64_remote_stream_id = mac_to_stream_id(AVB_DEVICE_SOURCE_MAC);
+    uint64_t uint64_remote_stream_id = mac_to_stream_id(AVB_DEVICE_SOURCE_MAC, 0);
 
     jdksavdecc_eui64_init_from_uint64(&stream_id, uint64_remote_stream_id);
     jdksavdecc_common_control_header_set_stream_id(stream_id, buffer, HEADER_OFFSET);
@@ -1314,7 +1314,7 @@ int main(int argc, char **argv)
    uint64_to_array8(AVB_DEVICE_SOURCE_MAC << 16, ix_stream);
 
    uint64_to_array6(MCAST_BASE, ox_mac);
-   uint64_to_array8(MAC << 16, ox_xtream);
+   uint64_to_array8(own_mac_address << 16, ox_stream);
 
    /* open igb_avb */
 

@@ -1,9 +1,7 @@
-AVB-alsa
+AVB-linux
 ========
 
-ALsa driver and supporting tools based on the OpenAvnu project
-The OpenAvnu project is sponsored by the Avnu Alliance.
-
+ALsa driver and supporting tools based on the OpenAvnu project.
 For more information about AVB/TSN, see also the Avnu Alliance webpage at
 www.avnu.org.
 
@@ -22,12 +20,19 @@ various subdirectories for details.
 GIT SUBMODULES
 ==============
 
-After checking out the AVB-alsa git repository submodules should be
+After checking out the avb-linux git repository submodules should be
 configured by going::
 
     git submodule init
     git submodule update
 
+    Then compile the jdksavdecc library:
+
+    cd  jdksavdecc-c
+    cmake .
+    make
+
+    
     make
     sudo make install
 
