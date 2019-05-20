@@ -95,26 +95,26 @@ void uint64_to_array6(uint64_t src, uint8_t *dest)
 {
     memset(dest, 0, 6);
 
-    dest[0] = (src >> (8*0)) & 0xff;
-    dest[1] = (src >> (8*1)) & 0xff;
-    dest[2] = (src >> (8*2)) & 0xff;
-    dest[3] = (src >> (8*3)) & 0xff;
-    dest[4] = (src >> (8*4)) & 0xff;
-    dest[5] = (src >> (8*5)) & 0xff;
+    dest[0] = (src >> (8*5)) & 0xff;
+    dest[1] = (src >> (8*4)) & 0xff;
+    dest[2] = (src >> (8*3)) & 0xff;
+    dest[3] = (src >> (8*2)) & 0xff;
+    dest[4] = (src >> (8*1)) & 0xff;
+    dest[5] = (src >> (8*0)) & 0xff;
 }
 
 void uint64_to_array8(uint64_t src, uint8_t *dest)
 {
     memset(dest, 0, 8);
 
-    dest[0] = (src >> (8*0)) & 0xff;
-    dest[1] = (src >> (8*1)) & 0xff;
-    dest[2] = (src >> (8*2)) & 0xff;
-    dest[3] = (src >> (8*3)) & 0xff;
-    dest[4] = (src >> (8*4)) & 0xff;
-    dest[5] = (src >> (8*5)) & 0xff;
-    dest[6] = (src >> (8*6)) & 0xff;
-    dest[7] = (src >> (8*7)) & 0xff;
+    dest[0] = (src >> (8*7)) & 0xff;
+    dest[1] = (src >> (8*6)) & 0xff;
+    dest[2] = (src >> (8*5)) & 0xff;
+    dest[3] = (src >> (8*4)) & 0xff;
+    dest[4] = (src >> (8*3)) & 0xff;
+    dest[5] = (src >> (8*2)) & 0xff;
+    dest[6] = (src >> (8*1)) & 0xff;
+    dest[7] = (src >> (8*0)) & 0xff;
 }
 
 uint64_t mac_to_entity_id(uint64_t mac)
@@ -1245,7 +1245,6 @@ void *handle_22f0_msg(void *arg)
 int main(int argc, char **argv)
 {
    struct sockaddr mac;
-   uint64_t mac_address;
 
    uint32_t samplerate = 48000;
    uint32_t channels_per_stream = 8;
@@ -1285,15 +1284,15 @@ int main(int argc, char **argv)
 
    memcpy(MAC, &mac.sa_data, MACLEN);
 
-   mac_address = array6_to_uint64(MAC);
+   own_mac_address = array6_to_uint64(MAC);
 
-   ENTITY_ID = mac_to_entity_id(mac_address);
-   CONTROLLER_ID = mac_to_controller_id(mac_address);
+   ENTITY_ID = mac_to_entity_id(own_mac_address);
+   CONTROLLER_ID = mac_to_controller_id(own_mac_address);
    MODEL_ID = 1;
-   GRANDMASTER_ID = mac_to_entity_id(mac_address);
+   GRANDMASTER_ID = mac_to_entity_id(own_mac_address);
 
-   REMOTE_TALKER_ID = mac_to_entity_id(mac_address);
-   REMOTE_LISTENER_ID = mac_to_entity_id(mac_address);
+   REMOTE_TALKER_ID = mac_to_entity_id(AVB_DEVICE_SOURCE_MAC);
+   REMOTE_LISTENER_ID = mac_to_entity_id(AVB_DEVICE_SOURCE_MAC);
 
    uint8_t ix_stream[8];
    uint8_t ix_mac[6];
@@ -1460,7 +1459,7 @@ int main(int argc, char **argv)
 
       int i=1000;
 
-      /* setup tx command */
+      // setup tx command
 
       struct jdksavdecc_acmpdu cmd;
 
@@ -1529,7 +1528,7 @@ int main(int argc, char **argv)
       rc = mrp_advertise_stream
                     (ox_stream,
 		     ox_mac,
-                     32 +     /* header size */
+                     32 +
                      channels_per_stream *
                      bytes_per_sample *
                      samples_per_interval,
@@ -1541,7 +1540,6 @@ int main(int argc, char **argv)
 
       while (1) //poll(&fdset, 1, -1) > 0)
       {
-
          adpdu.available_index = ++global_available_index;
          
          memcpy(buffer, DMAC, 6);
@@ -1560,7 +1558,7 @@ int main(int argc, char **argv)
       rc = mrp_unadvertise_stream
                     (ox_stream,
 		     ox_mac,
-                     32 +     /* header size */
+                     32 +
                      channels_per_stream *
                      bytes_per_sample *
                      samples_per_interval,
