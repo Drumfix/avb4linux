@@ -1,4 +1,4 @@
-AVB-linux
+AVB4linux
 ========
 
 Alsa driver and supporting tools based on the OpenAvnu project.
