@@ -102,26 +102,26 @@ void u64_to_array6(u64 src, u8 *dest)
 {
     memset(dest, 0, 6);
 
-    dest[0] = (src >> (8*0)) & 0xff;
-    dest[1] = (src >> (8*1)) & 0xff;
-    dest[2] = (src >> (8*2)) & 0xff;
-    dest[3] = (src >> (8*3)) & 0xff;
-    dest[4] = (src >> (8*4)) & 0xff;
-    dest[5] = (src >> (8*5)) & 0xff;
+    dest[0] = (src >> (8*5)) & 0xff;
+    dest[1] = (src >> (8*4)) & 0xff;
+    dest[2] = (src >> (8*3)) & 0xff;
+    dest[3] = (src >> (8*2)) & 0xff;
+    dest[4] = (src >> (8*1)) & 0xff;
+    dest[5] = (src >> (8*0)) & 0xff;
 }
 
 void u64_to_array8(u64 src, u8 *dest)
 {
     memset(dest, 0, 8);
 
-    dest[0] = (src >> (8*0)) & 0xff;
-    dest[1] = (src >> (8*1)) & 0xff;
-    dest[2] = (src >> (8*2)) & 0xff;
-    dest[3] = (src >> (8*3)) & 0xff;
-    dest[4] = (src >> (8*4)) & 0xff;
-    dest[5] = (src >> (8*5)) & 0xff;
-    dest[6] = (src >> (8*6)) & 0xff;
-    dest[7] = (src >> (8*7)) & 0xff;
+    dest[0] = (src >> (8*7)) & 0xff;
+    dest[1] = (src >> (8*6)) & 0xff;
+    dest[2] = (src >> (8*5)) & 0xff;
+    dest[3] = (src >> (8*4)) & 0xff;
+    dest[4] = (src >> (8*3)) & 0xff;
+    dest[5] = (src >> (8*2)) & 0xff;
+    dest[6] = (src >> (8*1)) & 0xff;
+    dest[7] = (src >> (8*0)) & 0xff;
 }
 
 /* open callback */
