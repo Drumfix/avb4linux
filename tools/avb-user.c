@@ -1247,7 +1247,39 @@ int main(int argc, char **argv)
    struct sockaddr mac;
    uint64_t mac_address;
 
+   uint32_t samplerate = 48000;
+   uint32_t channels_per_stream = 8;
+   uint32_t bytes_per_sample = 4;
+   uint32_t samples_per_interval = 6;
+
+   if (argc < 3)
+   {
+      printf("usage: avb-user <name of ethernet interface> <samplerate>\n");
+      exit(1);
+   }
+
    int sock = createSocket(argv[1], &ifindex, &mac);
+
+   samplerate = atoi(argv[2]);
+
+   switch (samplerate)
+   {
+       case 44100:
+       case 48000:
+          samples_per_interval = 6;
+          break;
+       case 88200:
+       case 96000:
+          samples_per_interval = 12;
+          break;
+       case 176400:
+       case 192000:
+          samples_per_interval = 24;
+          break;
+       default:
+          printf("Unsuppoerted samplerate %d\n", samplerate);
+          exit(1);
+     }
 
    /* initialize MAC address */
 
@@ -1497,7 +1529,10 @@ int main(int argc, char **argv)
       rc = mrp_advertise_stream
                     (ox_stream,
 		     ox_mac,
-                     6*8*4+32,
+                     32 +     /* header size */
+                     channels_per_stream *
+                     bytes_per_sample *
+                     samples_per_interval,
                      1,
                      95, 
                      CLASS_A_VLAN, CLASS_A_PRIORITY);
@@ -1525,7 +1560,10 @@ int main(int argc, char **argv)
       rc = mrp_unadvertise_stream
                     (ox_stream,
 		     ox_mac,
-                     6*8*4+32,
+                     32 +     /* header size */
+                     channels_per_stream *
+                     bytes_per_sample *
+                     samples_per_interval,
                      1,
                      95, 
                      CLASS_A_VLAN, CLASS_A_PRIORITY);
