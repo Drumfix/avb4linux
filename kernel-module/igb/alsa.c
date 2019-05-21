@@ -17,16 +17,7 @@ static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;
 static bool enable[SNDRV_CARDS] = SNDRV_DEFAULT_ENABLE_PNP;
 
 static int dev = 0;
-
 u8 channels = 8;
-
-/* i210 flex filter filtering AVB input stream */
-
-u8 filter[] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   /* Destination MAC used by the input AVB stream */
-                0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   /* Source MAC (of AVB device) */
-                0x81, 0x00, 0x60, 0x02, 0x22, 0xf0 };
-
-u8 filter_mask[] = { 0xff, 0xff, 0x03 };
 
 //#define DMA_BUFFERSIZE (768*4)   /* 4*8*6*8*2 */
 //#define DMA_PERIODSIZE (384*4)   /* 4*8*6*8 */
@@ -400,8 +391,11 @@ static int snd_avb_new_pcm(struct igb_adapter *adapter)
         /* sample size = 4 */
         /* one for playback, one for capture */
 
-        err = snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS, 0,
-                                                    1200*4*128*4*2, 1200*4*128*4*2);
+        err = snd_pcm_lib_preallocate_pages_for_all
+                (pcm, SNDRV_DMA_TYPE_CONTINUOUS, 
+                 snd_dma_continuous_data(GFP_KERNEL),
+                 64*1024, 64*1024);
+
         if (err < 0)
                 return err;
 
@@ -450,7 +444,8 @@ int snd_avb_probe(struct igb_adapter *adapter, int samplerate)
         u8 filter[] = 
               { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   /* Destination MAC used by the input AVB stream */
                 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,   /* Source MAC (of AVB device) */
-                0x81, 0x00, 0x60, 0x02, 0x22, 0xf0 };
+                0x81, 0x00, 0x60, 0x02, 0x22, 0xf0,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 
         u8 filter_mask[] = { 0xff, 0xff, 0x03 };
 

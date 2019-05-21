@@ -80,14 +80,16 @@ int ifindex = 0;
 uint64_t array6_to_uint64(char *val)
 {
     uint64_t ret = 0;
+    uint8_t x = 0;
+    uint64_t tmp = 0;
 
     for (unsigned i=0; i<6; i++)
     {
-        uint64_t tmp = (uint64_t)val[i];
+        x = (uint8_t)val[i];
+        tmp = (uint64_t)x;
 
         ret = ret + (tmp << (8*(5-i)));
     }
-
     return ret;
 }
 
@@ -1525,6 +1527,7 @@ int main(int argc, char **argv)
 
       printf("rc = %d, done sending ready\n", rc);
 
+      
       rc = mrp_advertise_stream
                     (ox_stream,
 		     ox_mac,
