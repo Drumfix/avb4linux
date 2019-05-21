@@ -400,8 +400,8 @@ static int snd_avb_new_pcm(struct igb_adapter *adapter)
         /* sample size = 4 */
         /* one for playback, one for capture */
 
-        err = snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_DEV,
-                                      snd_dma_pci_data(adapter->pdev), 1200*4*128*4*2, 1200*4*128*4*2);
+        err = snd_pcm_lib_preallocate_pages_for_all(pcm, SNDRV_DMA_TYPE_CONTINUOUS, 0,
+                                                    1200*4*128*4*2, 1200*4*128*4*2);
         if (err < 0)
                 return err;
 
