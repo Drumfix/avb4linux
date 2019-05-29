@@ -22,6 +22,8 @@
 #
 ################################################################################
 
+KBUILD_FLAGS += -fno-pie
+
 ###########################################################################
 # Driver files
 FAMILYC = e1000_82575.c e1000_i210.c
@@ -39,7 +41,7 @@ BUILD_KERNEL=$(shell uname -r)
 endif
 
 # PTP is required for AVB support
-CFLAGS_EXTRA += -DIGB_PTP
+CFLAGS_EXTRA += -DIGB_PTP -fno-pie
 
 # Add 32 bit ioctl support
 ifeq ($(32BIT_IOCTL_SUPPORT),y)
@@ -198,7 +200,7 @@ KVER_CODE := $(shell $(CC) $(EXTRA_CFLAGS) -E -dM $(VSP) 2>/dev/null |\
 	grep -m 1 LINUX_VERSION_CODE | awk '{ print $$3 }' | sed 's/\"//g')
 
 # abort the build on kernels older than 2.4.21
-ifneq (1,$(shell [ $(KVER_CODE) -ge 132117 ] && echo 1 || echo 0))
+ifneq (1,$(shell test $(KVER_CODE) -ge 132117 && echo 1 || echo 0))
   $(error *** Aborting the build. \
           *** This driver '$(KVER_CODE)' is not supported on kernel versions older than 2.4.21, \
               because this driver requires NAPI support.)
@@ -243,7 +245,7 @@ endif
 ###########################################################################
 # Kernel Version Specific rules
 
-ifeq (1,$(shell [ $(KVER_CODE) -ge 132352 ] && echo 1 || echo 0))
+ifeq (1,$(shell test $(KVER_CODE) -ge 132352 && echo 1 || echo 0))
 
 # Makefile for 2.5.x and newer kernel
 TARGET = $(DRIVER_NAME).ko
@@ -265,7 +267,7 @@ else
 endif
 endif
 
-else # ifeq (1,$(shell [ $(KVER_CODE) -ge 132352 ] && echo 1 || echo 0))
+else # ifeq (1,$(shell test $(KVER_CODE) -ge 132352 && echo 1 || echo 0))
 
 # Makefile for 2.4.x kernel
 TARGET = $(DRIVER_NAME).o
@@ -301,7 +303,7 @@ $(CFILES:.c=.o): $(HFILES) Makefile
 default:
 	$(MAKE)
 
-endif # ifeq (1,$(shell [ $(KVER_CODE) -ge 132352 ] && echo 1 || echo 0))
+endif # ifeq (1,$(shell test $(KVER_CODE) -ge 132352 && echo 1 || echo 0))
 
 ifeq (,$(MANDIR))
   # find the best place to install the man page
