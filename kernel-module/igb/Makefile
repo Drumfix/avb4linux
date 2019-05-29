@@ -77,7 +77,7 @@ KSP :=  /lib/modules/$(BUILD_KERNEL)/build \
 
 # prune the list down to only values that exist
 # and have an include/linux sub-directory
-test_dir = $(shell [ -e $(dir)/include/linux ] && echo $(dir))
+test_dir = $(shell test -e $(dir)/include/linux && echo $(dir))
 KSP := $(foreach dir, $(KSP), $(test_dir))
 
 # we will use this first valid entry in the search path
@@ -110,7 +110,7 @@ CSP :=  $(KSRC)/include/generated/autoconf.h \
         /boot/vmlinuz.autoconf.h
 
 # prune the lists down to only files that exist
-test_file = $(shell [ -f $(file) ] && echo $(file))
+test_file = $(shell test -f $(file) && echo $(file))
 VSP := $(foreach file, $(VSP), $(test_file))
 CSP := $(foreach file, $(CSP), $(test_file))
 
@@ -171,7 +171,7 @@ EXTRA_CFLAGS += -DDRIVER_NAME_CAPS=$(shell echo $(DRIVER_NAME) | tr '[a-z]' '[A-
 # standard flags for module builds
 EXTRA_CFLAGS += -DLINUX -D__KERNEL__ -DMODULE -O2 -pipe -Wall
 EXTRA_CFLAGS += -I$(KSRC)/include
-EXTRA_CFLAGS += $(shell [ -f $(KSRC)/include/linux/modversions.h ] && \
+EXTRA_CFLAGS += $(shell test -f $(KSRC)/include/linux/modversions.h && \
             echo "-DMODVERSIONS -DEXPORT_SYMTAB \
                   -include $(KSRC)/include/linux/modversions.h")
 
@@ -294,7 +294,7 @@ $(TARGET): $(filter-out $(TARGET), $(CFILES:.c=.o))
 	echo "**************************************************"
 	echo "** $(TARGET) built for $(KVER)"
 	echo -n "** SMP               "
-	if [ "$(SMP)" = "1" ]; \
+	if test "$(SMP)" = "1" ; \
 		then echo "Enabled"; else echo "Disabled"; fi
 	echo "**************************************************"
 	echo
@@ -313,7 +313,7 @@ ifeq (,$(MANDIR))
     test_dir = $(findstring $(dir), $(MANPATH))
   else
     # no MANPATH, test based on directory existence
-    test_dir = $(shell [ -e $(dir) ] && echo $(dir))
+    test_dir = $(shell test -e $(dir) && echo $(dir))
   endif
   # our preferred install path
   # should /usr/local/man be in here ?
@@ -354,11 +354,11 @@ endif
 	man -c -P'cat > /dev/null' $(MANFILE:.$(MANSECTION)=) || true
 
 uninstall:
-	if [ -e $(INSTDIR)/$(TARGET) ] ; then \
+	if test -e $(INSTDIR)/$(TARGET) ; then \
 	    $(RM) $(INSTDIR)/$(TARGET) ; \
 	fi
 	/sbin/depmod -a
-	if [ -e $(MANDIR)/man$(MANSECTION)/$(MANFILE).gz ] ; then \
+	if test -e $(MANDIR)/man$(MANSECTION)/$(MANFILE).gz ; then \
 		$(RM) $(MANDIR)/man$(MANSECTION)/$(MANFILE).gz ; \
 	fi
 
