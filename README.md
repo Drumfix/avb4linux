@@ -14,12 +14,17 @@ Licensing information is included in the various directories to eliminate confus
 Please review the ‘LICENSE’ file included in the head of the 
 various subdirectories for details.
 
+PREREQUISITES
+=============
+
+Install the kernel headers.
+Important: The kernel must have been compiled with ptp 1588 clock and i2c algobit support as modules.
 
 GIT SUBMODULES
 ==============
 
 After checking out the avb-linux git repository submodules should be
-configured by going::
+configured by doing::
 
     git submodule init
     git submodule update
