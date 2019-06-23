@@ -224,7 +224,10 @@ static long igb_ioctl_file(struct file *file, unsigned int cmd,
 			   unsigned long arg);
 static void igb_vm_open(struct vm_area_struct *vma);
 static void igb_vm_close(struct vm_area_struct *vma);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+vm_fault_t igb_vm_fault(struct vm_fault *fdata);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
 static int igb_vm_fault(struct vm_fault *fdata);
 #else
 static int igb_vm_fault(struct vm_area_struct *area, struct vm_fault *fdata);
@@ -2184,7 +2187,12 @@ static int igb_ndo_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
 #ifdef HAVE_NDO_FDB_ADD_VID
 			   u16 vid,
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,1,0)
+			   u16 flags,
+                           struct netlink_ext_ack *extack)
+#else
 			   u16 flags)
+#endif
 #else /* USE_CONST_DEV_UC_CHAR */
 static int igb_ndo_fdb_add(struct ndmsg *ndm,
 			   struct net_device *dev,
@@ -2279,7 +2287,12 @@ static int igb_ndo_fdb_dump(struct sk_buff *skb,
 #ifdef HAVE_NDO_BRIDGE_SET_DEL_LINK_FLAGS
 static int igb_ndo_bridge_setlink(struct net_device *dev,
 				  struct nlmsghdr *nlh,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,1,0)
+				  u16 flags,
+                                  struct netlink_ext_ack *extack)
+#else
 				  u16 flags)
+#endif
 #else
 static int igb_ndo_bridge_setlink(struct net_device *dev,
 				  struct nlmsghdr *nlh)
@@ -5796,8 +5809,13 @@ static inline struct igb_ring *igb_tx_queue_mapping(struct igb_adapter *adapter,
 #endif
 
 #ifdef HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
+			    struct net_device *sb_dev, select_queue_fallback_t fallback)
+#else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
 			    void *accel_priv, select_queue_fallback_t fallback)
+#endif
 #else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb)
 #endif
@@ -11047,7 +11065,9 @@ static void igb_vm_close(struct vm_area_struct *vma)
 */
 }
 
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
+vm_fault_t igb_vm_fault(struct vm_fault *fdata)
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(4,11,0)
 static int igb_vm_fault(struct vm_fault *fdata)
 #else
 static int igb_vm_fault(struct vm_area_struct *area, struct vm_fault *fdata)
