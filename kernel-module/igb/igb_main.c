@@ -137,9 +137,15 @@ static void igb_dma_err_timer(unsigned long data);
 static void igb_watchdog_task(struct work_struct *);
 static void igb_dma_err_task(struct work_struct *);
 /* AVB specific */
+
 #ifdef HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
-		void *accel_priv, select_queue_fallback_t fallback);
+			    struct net_device *sb_dev, select_queue_fallback_t fallback);
+#else
+static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
+			    void *accel_priv, select_queue_fallback_t fallback);
+#endif
 #else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb);
 #endif
