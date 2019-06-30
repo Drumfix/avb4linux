@@ -391,6 +391,7 @@ static int snd_avb_new_pcm(struct igb_adapter *adapter)
         /* sample size = 4 */
         /* one for playback, one for capture */
 
+/* ALSA BUG! there should be an err return value
         err = snd_pcm_lib_preallocate_pages_for_all
                 (pcm, SNDRV_DMA_TYPE_CONTINUOUS, 
                  snd_dma_continuous_data(GFP_KERNEL),
@@ -398,6 +399,12 @@ static int snd_avb_new_pcm(struct igb_adapter *adapter)
 
         if (err < 0)
                 return err;
+*/
+
+        snd_pcm_lib_preallocate_pages_for_all
+            (pcm, SNDRV_DMA_TYPE_CONTINUOUS, 
+             snd_dma_continuous_data(GFP_KERNEL),
+             64*1024, 64*1024);
 
         printk(KERN_INFO "alloc tx new pcm avb\n");
 	adapter->tx_addr = dma_alloc_coherent(&adapter->pdev->dev, 4096*16*4,

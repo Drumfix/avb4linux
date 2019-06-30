@@ -1793,7 +1793,7 @@ static void igb_diag_test(struct net_device *netdev,
 
 		if (if_running)
 			/* indicate we're in test mode */
-			dev_close(netdev);
+			igb_close(netdev);
 		else
 			igb_reset(adapter);
 
@@ -1828,7 +1828,7 @@ static void igb_diag_test(struct net_device *netdev,
 
 		clear_bit(__IGB_TESTING, &adapter->state);
 		if (if_running)
-			dev_open(netdev);
+			igb_open(netdev);
 	} else {
 		dev_info(pci_dev_to_dev(adapter->pdev), "online testing starting\n");
 
@@ -3084,8 +3084,8 @@ static int igb_set_channels(struct net_device *dev,
 
 #endif /* ETHTOOL_SCHANNELS */
 static const struct ethtool_ops igb_ethtool_ops = {
-	.get_settings           = igb_get_settings,
-	.set_settings           = igb_set_settings,
+/*	.get_settings           = igb_get_settings,
+	.set_settings           = igb_set_settings,*/
 	.get_drvinfo            = igb_get_drvinfo,
 	.get_regs_len           = igb_get_regs_len,
 	.get_regs               = igb_get_regs,
