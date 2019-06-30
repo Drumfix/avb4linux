@@ -232,7 +232,7 @@ bool e1000_is_mphy_ready(struct e1000_hw *hw);
 
 #define E1000_SFF_ETH_FLAGS_OFFSET	0x06
 /* Flags for SFP modules compatible with ETH up to 1Gb */
-struct sfp_e1000_flags {
+struct e1000_sfp_flags {
 	u8 e1000_base_sx:1;
 	u8 e1000_base_lx:1;
 	u8 e1000_base_cx:1;

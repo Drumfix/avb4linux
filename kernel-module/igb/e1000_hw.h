@@ -742,9 +742,10 @@ struct e1000_dev_spec_82575 {
 	bool module_plugged;
 	bool clear_semaphore_once;
 	u32 mtu;
-	struct sfp_e1000_flags eth_flags;
+        struct e1000_sfp_flags eth_flags;
 	u8 media_port;
 	bool media_changed;
+	bool mas_capable;
 };
 
 struct e1000_dev_spec_vf {

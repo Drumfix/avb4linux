@@ -1855,7 +1855,7 @@ static s32 e1000_set_sfp_media_type_82575(struct e1000_hw *hw)
 	s32 ret_val = E1000_ERR_CONFIG;
 	u32 ctrl_ext = 0;
 	struct e1000_dev_spec_82575 *dev_spec = &hw->dev_spec._82575;
-	struct sfp_e1000_flags *eth_flags = &dev_spec->eth_flags;
+	struct e1000_sfp_flags *eth_flags = &dev_spec->eth_flags;
 	u8 tranceiver_type = 0;
 	s32 timeout = 3;
 
