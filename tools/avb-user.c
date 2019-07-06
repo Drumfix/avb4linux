@@ -46,6 +46,8 @@
 
 #include <poll.h>
 
+#include <endian.h>
+
 #include "mrp_client.h"
 #include "maap_client.h"
 #include "avpdu.h"
@@ -61,11 +63,14 @@ char DMAC[] = { 0x91, 0xe0, 0xf0, 0x01, 0x00, 0x00 };  // for ADP and AECP
 
 #define MCAST_BASE MAAP_LOCALLY_ADMINISTRATORED_BASE
 
+uint32_t samplerate = 48000;
+
 uint64_t ENTITY_ID;
 uint64_t CONTROLLER_ID;
 uint64_t MODEL_ID;
 uint64_t GRANDMASTER_ID;
 
+uint64_t REMOTE_ENTITY_ID;
 uint64_t REMOTE_TALKER_ID;
 uint64_t REMOTE_LISTENER_ID;
 
@@ -328,7 +333,7 @@ void fill_jdksavdecc_descriptor_audio_unit()
    audio_unit.base_transcoder = 0;
    audio_unit.number_of_control_blocks = 0;
    audio_unit.base_control_block = 0;
-   audio_unit.current_sampling_rate = 48000;
+   audio_unit.current_sampling_rate = samplerate;
    audio_unit.sampling_rates_offset = 144;
    audio_unit.sampling_rates_count = 6;
 
@@ -364,18 +369,44 @@ uint64_t STREAM_OUTPUT_FORMAT_1_REVERSE =  0x00A0020840000800;
 void fill_jdksavdecc_descriptor_streams()
 {
    int i;
+   char name[64];
+
+   uint64_t stream_format = 0;
+
+   switch (samplerate)
+   {
+      case 44100:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_0);
+        break;
+      case 48000:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_1);
+        break;
+      case 88200:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_2);
+        break;
+      case 96000:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_3);
+        break;
+      case 176400:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_4);
+        break;
+      case 192000:
+        stream_format = be64toh(STREAM_INPUT_FORMAT_5);
+        break;
+   }
 
    for (i=0; i<16; i++)
    {
+      sprintf(name, "%i", i);
       stream_input[i].descriptor_type = JDKSAVDECC_DESCRIPTOR_STREAM_INPUT;
       stream_input[i].descriptor_index = i;
-      jdksavdecc_string_set_from_cstr(&stream_input[i].object_name, "");
+      jdksavdecc_string_set_from_cstr(&stream_input[i].object_name, name);
       stream_input[i].localized_description = -1;
       stream_input[i].clock_domain_index = 0;
       stream_input[i].stream_flags = 
         JDKSAVDECC_DESCRIPTOR_STREAM_FLAG_CLOCK_SYNC_SOURCE |
         JDKSAVDECC_DESCRIPTOR_STREAM_FLAG_CLASS_A;
-      jdksavdecc_eui64_init_from_uint64(&stream_input[i].current_format, STREAM_INPUT_FORMAT_1_REVERSE);
+      jdksavdecc_eui64_init_from_uint64(&stream_input[i].current_format, stream_format);
       stream_input[i].formats_offset= 132;
       stream_input[i].number_of_formats = 6;
       jdksavdecc_eui64_init_from_uint64(&stream_input[i].backup_talker_entity_id_0, 0);
@@ -391,11 +422,11 @@ void fill_jdksavdecc_descriptor_streams()
 
       stream_output[i].descriptor_type = JDKSAVDECC_DESCRIPTOR_STREAM_OUTPUT;
       stream_output[i].descriptor_index = i;
-      jdksavdecc_string_set_from_cstr(&stream_output[i].object_name, "");
+      jdksavdecc_string_set_from_cstr(&stream_output[i].object_name, name);
       stream_output[i].localized_description = -1;
       stream_output[i].clock_domain_index = 0;
       stream_output[i].stream_flags = JDKSAVDECC_DESCRIPTOR_STREAM_FLAG_CLASS_A;
-      jdksavdecc_eui64_init_from_uint64(&stream_output[i].current_format, STREAM_OUTPUT_FORMAT_1_REVERSE);
+      jdksavdecc_eui64_init_from_uint64(&stream_output[i].current_format, stream_format);
       stream_output[i].formats_offset= 132;
       stream_output[i].number_of_formats = 6;
       jdksavdecc_eui64_init_from_uint64(&stream_output[i].backup_talker_entity_id_0, 0);
@@ -1276,7 +1307,6 @@ int main(int argc, char **argv)
 {
    struct sockaddr mac;
 
-   uint32_t samplerate = 48000;
    uint32_t channels_per_stream = 8;
    uint32_t bytes_per_sample = 4;
    uint32_t samples_per_interval = 6;
@@ -1321,6 +1351,7 @@ int main(int argc, char **argv)
    MODEL_ID = 1;
    GRANDMASTER_ID = mac_to_entity_id(own_mac_address);
 
+   REMOTE_ENTITY_ID = mac_to_entity_id(AVB_DEVICE_SOURCE_MAC);
    REMOTE_TALKER_ID = mac_to_entity_id(AVB_DEVICE_SOURCE_MAC);
    REMOTE_LISTENER_ID = mac_to_entity_id(AVB_DEVICE_SOURCE_MAC);
 
@@ -1337,6 +1368,7 @@ int main(int argc, char **argv)
    jdksavdecc_eui64_init_from_uint64(&controller_guid, CONTROLLER_ID);
    jdksavdecc_eui64_init_from_uint64(&grandmaster_id, GRANDMASTER_ID);
 
+
    jdksavdecc_eui64_init_from_uint64(&remote_talker_guid, REMOTE_TALKER_ID);
    jdksavdecc_eui64_init_from_uint64(&remote_listener_guid, REMOTE_LISTENER_ID);
 
@@ -1347,7 +1379,7 @@ int main(int argc, char **argv)
 
    fill_jdksavdecc_descriptor_entity();
    fill_jdksavdecc_descriptor_configuration();
-   fill_jdksavdecc_descriptor_audio_unit();
+   fill_jdksavdecc_descriptor_audio_unit(samplerate);
    fill_jdksavdecc_descriptor_streams();
    fill_jdksavdecc_descriptor_avb_interface();
    fill_jdksavdecc_descriptor_clock_source();
@@ -1378,7 +1410,7 @@ int main(int argc, char **argv)
    uint64_to_array8(own_mac_address << 16, ox_stream);
 
    /* open igb_avb */
-
+/*
    int fd = open("/dev/igb_avb", O_RDWR);
 
    if (fd < 0)
@@ -1386,7 +1418,7 @@ int main(int argc, char **argv)
        printf("Could not open igb_avb.\n");
        exit(1);
    }
-
+*/
    /* maap 
       ignore for now. we use the locally administered MAAP MAC pool instead
 
@@ -1467,7 +1499,37 @@ int main(int argc, char **argv)
    adpdu.interface_index = 0;
    jdksavdecc_eui64_init_from_uint64(&adpdu.association_id, 0);
    adpdu.reserved1 = 0;
-   
+
+   /* set samplingrate */
+
+   struct jdksavdecc_aem_command_set_sampling_rate aem_cmd;
+
+   aem_cmd.aem_header.aecpdu_header.header.cd = 1;
+   aem_cmd.aem_header.aecpdu_header.header.subtype = JDKSAVDECC_SUBTYPE_AECP;
+   aem_cmd.aem_header.aecpdu_header.header.sv = 0;
+   aem_cmd.aem_header.aecpdu_header.header.version = 0;
+   aem_cmd.aem_header.aecpdu_header.header.message_type = JDKSAVDECC_AECP_MESSAGE_TYPE_AEM_COMMAND;
+   aem_cmd.aem_header.aecpdu_header.header.status = JDKSAVDECC_AEM_STATUS_SUCCESS;
+   aem_cmd.aem_header.aecpdu_header.header.control_data_length = JDKSAVDECC_AEM_COMMAND_SET_SAMPLING_RATE_COMMAND_LEN;
+   jdksavdecc_eui64_init_from_uint64(&aem_cmd.aem_header.aecpdu_header.header.target_entity_id, REMOTE_ENTITY_ID);
+   jdksavdecc_eui64_init_from_uint64(&aem_cmd.aem_header.aecpdu_header.controller_entity_id, CONTROLLER_ID);
+   aem_cmd.aem_header.aecpdu_header.sequence_id = 1;
+   aem_cmd.aem_header.command_type = JDKSAVDECC_AEM_COMMAND_SET_SAMPLING_RATE;
+
+   aem_cmd.descriptor_type = JDKSAVDECC_DESCRIPTOR_AUDIO_UNIT;
+   aem_cmd.descriptor_index = 0;
+   aem_cmd.sampling_rate = samplerate;
+
+   memcpy(buffer, DMAC, 6);
+   memcpy(&buffer[6], MAC, 6);
+
+   buffer[12] = 0x22; buffer[13] = 0xf0;
+   jdksavdecc_aem_command_set_sampling_rate_write(&aem_cmd, &buffer[14], 0, sizeof(buffer));
+
+   sendMsg(sock, buffer, 14 + JDKSAVDECC_AEM_COMMAND_SET_SAMPLING_RATE_COMMAND_LEN);
+
+   sleep(5);
+
    if (sock >= 0)
    {
 
