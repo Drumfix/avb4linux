@@ -183,12 +183,12 @@ void my_talker_cb(const struct mrp_talker_ctx ctx)
 int i;
 
 printf("talker:\n");
-printf("mode %d\n", ctx.mode);
+printf("mode %s\n", ctx.mode ? "LEAVE" : "JOIN");
 printf("stream: ");
-for (i=0;i<8;i++) printf("%2x", ctx.stream_id[i]);
+for (i=0;i<8;i++) printf("%02x", (unsigned char)ctx.stream_id[i]);
 printf("\n");
 printf("dst_mac: ");
-for (i=0;i<6;i++) printf("%2x", ctx.dst_mac[i]);
+for (i=0;i<6;i++) printf("%02x", (unsigned char)ctx.dst_mac[i]);
 printf("\n");
 printf("vid: %d\n", ctx.vid);
 }
@@ -198,12 +198,12 @@ void my_listener_cb(const struct mrp_listener_ctx ctx)
 int i;
 
 printf("listener:\n");
-printf("mode %d\n", ctx.mode);
+printf("mode %s\n", ctx.mode ? "LEAVE" : "JOIN");
 printf("stream: ");
-for (i=0;i<8;i++) printf("%2x", ctx.stream_id[i]);
+for (i=0;i<8;i++) printf("%02x", (unsigned char)ctx.stream_id[i]);
 printf("\n");
 printf("listener: ");
-for (i=0;i<6;i++) printf("%2x", ctx.listener[i]);
+for (i=0;i<6;i++) printf("%02x", (unsigned char)ctx.listener[i]);
 printf("\n");
 }
 
@@ -555,9 +555,9 @@ int createSocket(char *name, int *ifindex, struct sockaddr *mac)
    struct packet_mreq mreq;
    memset(&mreq, 0, sizeof(struct packet_mreq));
    mreq.mr_ifindex = *ifindex;
-   mreq.mr_type = PACKET_MR_ALLMULTI;
+   mreq.mr_type = PACKET_MR_MULTICAST;
    mreq.mr_alen = 0;
-   memset(&mreq.mr_address, 0, sizeof(mreq.mr_address));
+   memcpy(&mreq.mr_address, DMAC, 6);
 
    if (setsockopt(sock, SOL_SOCKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) //getting MAC Address
       printf("error setting setsockopt PACKET_ADD_MEMBERSHIP\n");
@@ -1062,7 +1062,7 @@ void handle_acmp_connect_tx_response(int sock, char *buffer, int len)
 {
     struct jdksavdecc_eui64 talker_guid = jdksavdecc_acmpdu_get_talker_entity_id(buffer, HEADER_OFFSET);
 
-    printf("talker %lu, entity %lu\n",
+    printf("talker %lx, entity %lx\n",
     		jdksavdecc_eui64_convert_to_uint64(&talker_guid),
 			jdksavdecc_eui64_convert_to_uint64(&entity_guid));
 /*
@@ -1500,6 +1500,8 @@ int main(int argc, char **argv)
    jdksavdecc_eui64_init_from_uint64(&adpdu.association_id, 0);
    adpdu.reserved1 = 0;
 
+   printf("Setting samplerate to %d.\n", samplerate);
+
    /* set samplingrate */
 
    struct jdksavdecc_aem_command_set_sampling_rate aem_cmd;
@@ -1530,9 +1532,10 @@ int main(int argc, char **argv)
 
    sleep(5);
 
+   printf("Done setting samplerate.\n");
+
    if (sock >= 0)
    {
-
       pthread_t control_thread_id;
 
       pthread_create(&control_thread_id, NULL, handle_22f0_msg, &sock);
