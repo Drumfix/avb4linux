@@ -16,3 +16,5 @@ sleep 1
 ifconfig $INTERFACE down
 rmmod igb_avb
 
+modprobe igb
+
