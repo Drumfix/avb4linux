@@ -556,7 +556,7 @@ int createSocket(char *name, int *ifindex, struct sockaddr *mac)
    memset(&mreq, 0, sizeof(struct packet_mreq));
    mreq.mr_ifindex = *ifindex;
    mreq.mr_type = PACKET_MR_MULTICAST;
-   mreq.mr_alen = 0;
+   mreq.mr_alen = 6;
    memcpy(&mreq.mr_address, DMAC, 6);
 
    if (setsockopt(sock, SOL_SOCKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) //getting MAC Address
