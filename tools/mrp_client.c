@@ -134,10 +134,14 @@ int process_mrp_msg(char *buf, int buflen)
 		} 
                 printf
 		    ("FOUND STREAM ID=%02x%02x%02x%02x%02x%02x%02x%02x ",
-		     listener_ctx.stream_id[0], listener_ctx.stream_id[1],
-		     listener_ctx.stream_id[2], listener_ctx.stream_id[3],
-		     listener_ctx.stream_id[4], listener_ctx.stream_id[5],
-		     listener_ctx.stream_id[6], listener_ctx.stream_id[7]);
+		     (unsigned char)listener_ctx.stream_id[0], 
+                     (unsigned char)listener_ctx.stream_id[1],
+		     (unsigned char)listener_ctx.stream_id[2], 
+                     (unsigned char)listener_ctx.stream_id[3],
+		     (unsigned char)listener_ctx.stream_id[4], 
+                     (unsigned char)listener_ctx.stream_id[5],
+		     (unsigned char)listener_ctx.stream_id[6], 
+                     (unsigned char)listener_ctx.stream_id[7]);
 		while (buf[i] != 'R')
 			i++;
 		i += 2;		/* skip the ':' */
@@ -272,10 +276,14 @@ int process_mrp_msg(char *buf, int buflen)
 				listener_ctx.stream_id[j] = (unsigned char)id;
 			} printf
 			    ("EVENT on STREAM ID=%02x%02x%02x%02x%02x%02x%02x%02x ",
-			     listener_ctx.stream_id[0], listener_ctx.stream_id[1],
-			     listener_ctx.stream_id[2], listener_ctx.stream_id[3],
-			     listener_ctx.stream_id[4], listener_ctx.stream_id[5],
-			     listener_ctx.stream_id[6], listener_ctx.stream_id[7]);
+			     (unsigned char)listener_ctx.stream_id[0], 
+                             (unsigned char)listener_ctx.stream_id[1],
+			     (unsigned char)listener_ctx.stream_id[2],
+                             (unsigned char)listener_ctx.stream_id[3],
+			     (unsigned char)listener_ctx.stream_id[4],
+                             (unsigned char)listener_ctx.stream_id[5],
+			     (unsigned char)listener_ctx.stream_id[6],
+                             (unsigned char)listener_ctx.stream_id[7]);
 			while (buf[i] != 'R')
 				i++;
 			i += 2;		/* skip the ':' */
@@ -512,9 +520,9 @@ mrp_advertise_stream(uint8_t * streamid,
 		return -1;
 	memset(msgbuf, 0, 1500);
 
-	sprintf(msgbuf, "S++:S=%02X%02X%02X%02X%02X%02X%02X%02X"
-		",A=%02X%02X%02X%02X%02X%02X"
-		",V=%04X"
+	sprintf(msgbuf, "S++:S=%02x%02x%02x%02x%02x%02x%02x%02x"
+		",A=%02x%02x%02x%02x%02x%02x"
+		",V=%04x"
 		",Z=%d"
 		",I=%d"
 		",P=%d"
@@ -545,9 +553,9 @@ mrp_unadvertise_stream(uint8_t * streamid,
 	if (NULL == msgbuf)
 		return -1;
 	memset(msgbuf, 0, 1500);
-	sprintf(msgbuf, "S--:S=%02X%02X%02X%02X%02X%02X%02X%02X"
-		",A=%02X%02X%02X%02X%02X%02X"
-		",V=%04X"
+	sprintf(msgbuf, "S--:S=%02x%02x%02x%02x%02x%02x%02x%02x"
+		",A=%02x%02x%02x%02x%02x%02x"
+		",V=%04x"
 		",Z=%d"
 		",I=%d"
 		",P=%d"
@@ -639,7 +647,7 @@ int send_leave(uint8_t *stream_id)
 	if (NULL == databuf)
 		return -1;
 	memset(databuf, 0, 1500);
-	sprintf(databuf, "S-L:L=%02x%02x%02x%02x%02x%02x%02x%02x, D=3",
+	sprintf(databuf, "S-L:L=%02x%02x%02x%02x%02x%02x%02x%02x, D=2",
 		     stream_id[0], stream_id[1],
 		     stream_id[2], stream_id[3],
 		     stream_id[4], stream_id[5],
