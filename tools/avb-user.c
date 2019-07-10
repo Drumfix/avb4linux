@@ -559,7 +559,7 @@ int createSocket(char *name, int *ifindex, struct sockaddr *mac)
    mreq.mr_alen = 6;
    memcpy(&mreq.mr_address, DMAC, 6);
 
-   if (setsockopt(sock, SOL_SOCKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) //getting MAC Address
+   if (setsockopt(sock, SOL_PACKET, PACKET_ADD_MEMBERSHIP, &mreq, sizeof(mreq)) < 0) //getting MAC Address
       printf("error setting setsockopt PACKET_ADD_MEMBERSHIP\n");
    
    struct ifreq ifreq_c;
