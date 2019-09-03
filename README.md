@@ -39,7 +39,8 @@ Then compile the jdksavdecc library:
     cmake .
     make
 
-    Edit the 
+And build
+
     cd ..
     make
     sudo make install
