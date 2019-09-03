@@ -4,6 +4,7 @@ AVB4linux
 Alsa driver and supporting tools based on the OpenAvnu project.
 
 Currently this implementation will create an alsa PCM device and connect a single 8in/8out AVB stream to an AVB endpoint.
+The driver currently only works with NICs based on the Intel's i210 chiptset.
 
 
 LICENSING AND CONTRIBUTION GUIDELINES
@@ -23,18 +24,22 @@ Important: The kernel must have been compiled with ptp 1588 clock and i2c algobi
 GIT SUBMODULES
 ==============
 
-After checking out the avb-linux git repository submodules should be
-configured by doing::
+After checking out, you need to edit the file kernel_module/igb/avb-config.h.
+
+Edit the values of OWN_MAC, AVB_DEVICE_SOURCE_MAC and AVB_DEVICE_TALKER_MAC_BASE to match your NIC and the AVB device.
+
+Now the avb-linux git repository submodules should be configured:
 
     git submodule init
     git submodule update
 
-    Then compile the jdksavdecc library:
+Then compile the jdksavdecc library:
 
     cd  jdksavdecc-c
     cmake .
     make
 
+    Edit the 
     cd ..
     make
     sudo make install
