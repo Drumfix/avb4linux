@@ -2,6 +2,9 @@ descend = \
 	+mkdir -p $(OUTPUT)$(1) && \
 	$(MAKE) $(COMMAND_O) subdir=$(if $(subdir),$(subdir)/$(1),$(1)) $(PRINT_DIR) -C $(1) $(2)
 
+kernel_dir = /lib/modules/`uname -r`/build
+module_dir = `pwd`/kernel-module/igb
+
 all: igb daemons_all avb-user
 
 clean: igb_clean daemons_all_clean avb-user_clean
@@ -28,7 +31,8 @@ help:
 	@echo ''
 
 igb: FORCE
-	$(call descend,kernel-module/$@)
+	cd $(module_dir)
+	make -C $(kernel_dir) M=$(module_dir)
 
 igb_clean:
 	$(call descend,kernel-module/igb/,clean)

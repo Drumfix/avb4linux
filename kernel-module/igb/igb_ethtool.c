@@ -56,6 +56,10 @@ struct igb_stats {
 	int stat_offset;
 };
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+#define FIELD_SIZEOF(t, f) (sizeof(((t*)0)->f))
+#endif
+
 #define IGB_STAT(_name, _stat) { \
 	.stat_string = _name, \
 	.sizeof_stat = FIELD_SIZEOF(struct igb_adapter, _stat), \

@@ -32,7 +32,7 @@ $AVBHOME/mrpd -mvs -i $INTERFACE &
 $AVBHOME/maap_daemon -i $INTERFACE -d /dev/null &
 $AVBHOME/shaper_daemon -d &
 
-sleep 5 
+sleep 10
 
 $AVBHOME/avb-user $INTERFACE $SAMPLERATE
 

@@ -138,6 +138,10 @@ static void igb_watchdog_task(struct work_struct *);
 static void igb_dma_err_task(struct work_struct *);
 /* AVB specific */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
+			    struct net_device *sb_dev);
+#else
 #ifdef HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
@@ -145,10 +149,11 @@ static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
 #else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
 			    void *accel_priv, select_queue_fallback_t fallback);
-#endif
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0) */
 #else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb);
-#endif
+#endif /* HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK */
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2) */
 
 static netdev_tx_t igb_xmit_frame(struct sk_buff *skb, struct net_device *);
 static struct net_device_stats *igb_get_stats(struct net_device *);
@@ -169,7 +174,11 @@ static int igb_poll(struct napi_struct *, int);
 static bool igb_clean_tx_irq(struct igb_q_vector *);
 static bool igb_clean_rx_irq(struct igb_q_vector *, int);
 static int igb_ioctl(struct net_device *, struct ifreq *, int cmd);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+static void igb_tx_timeout(struct net_device *, unsigned int txqueue);
+#else
 static void igb_tx_timeout(struct net_device *);
+#endif
 static void igb_reset_task(struct work_struct *);
 #ifdef HAVE_VLAN_RX_REGISTER
 static void igb_vlan_mode(struct net_device *, struct vlan_group *);
@@ -5545,7 +5554,11 @@ static void igb_tx_map(struct igb_ring *tx_ring,
 	struct sk_buff *skb = first->skb;
 	struct igb_tx_buffer *tx_buffer;
 	union e1000_adv_tx_desc *tx_desc;
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+	skb_frag_t *frag;
+#else
 	struct skb_frag_struct *frag;
+#endif
 	dma_addr_t dma;
 	unsigned int data_len, size;
 	u32 tx_flags = first->tx_flags;
@@ -5814,17 +5827,19 @@ static inline struct igb_ring *igb_tx_queue_mapping(struct igb_adapter *adapter,
 #error Must have multi-queue tx support enabled (CONFIG_NETDEVICES_MULTIQUEUE)!
 #endif
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
+			    struct net_device *sb_dev)
+#else
 #ifdef HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0)
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
-			    struct net_device *sb_dev, select_queue_fallback_t fallback)
-#else
-static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb,
 			    void *accel_priv, select_queue_fallback_t fallback)
-#endif
 #else
 static u16 igb_select_queue(struct net_device *dev, struct sk_buff *skb)
-#endif
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0) */
+#endif /* HAVE_NDO_SELECT_QUEUE_ACCEL_FALLBACK */
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2) */
 {
 	/* remap normal LAN to best effort queue[3] */
 	return 3;
@@ -5862,7 +5877,11 @@ static netdev_tx_t igb_xmit_frame(struct sk_buff *skb,
  * igb_tx_timeout - Respond to a Tx Hang
  * @netdev: network interface device structure
  **/
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+static void igb_tx_timeout(struct net_device *netdev, unsigned int txqueue)
+#else
 static void igb_tx_timeout(struct net_device *netdev)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 	struct e1000_hw *hw = &adapter->hw;
@@ -8593,9 +8612,14 @@ static void igb_pull_tail(struct igb_ring *rx_ring,
 			  union e1000_adv_rx_desc *rx_desc,
 			  struct sk_buff *skb)
 {
-	struct skb_frag_struct *frag = &skb_shinfo(skb)->frags[0];
 	unsigned char *va;
 	unsigned int pull_len;
+
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+	skb_frag_t *frag = &skb_shinfo(skb)->frags[0];;
+#else
+	struct skb_frag_struct *frag = &skb_shinfo(skb)->frags[0];
+#endif
 
 	/*
 	 * it is valid to use page_address instead of kmap since we are
@@ -8611,7 +8635,11 @@ static void igb_pull_tail(struct igb_ring *rx_ring,
 
 		/* update pointers to remove timestamp header */
 		skb_frag_size_sub(frag, IGB_TS_HDR_LEN);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+		frag->bv_offset += IGB_TS_HDR_LEN;
+#else
 		frag->page_offset += IGB_TS_HDR_LEN;
+#endif
 		skb->data_len -= IGB_TS_HDR_LEN;
 		skb->len -= IGB_TS_HDR_LEN;
 
@@ -8631,7 +8659,11 @@ static void igb_pull_tail(struct igb_ring *rx_ring,
 
 	/* update all of the pointers */
 	skb_frag_size_sub(frag, pull_len);
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+	frag->bv_offset += pull_len;
+#else
 	frag->page_offset += pull_len;
+#endif
 	skb->data_len -= pull_len;
 	skb->tail += pull_len;
 }

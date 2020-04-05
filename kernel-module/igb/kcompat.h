@@ -53,6 +53,7 @@
 #include <asm/io.h>
 #include <linux/ethtool.h>
 #include <linux/if_vlan.h>
+#include <linux/cpumask.h>
 
 /* UTS_RELEASE is in a different header starting in kernel 2.6.18 */
 #ifndef UTS_RELEASE
@@ -269,8 +270,10 @@ struct msix_entry {
 #define node_online(node) ((node) == 0)
 #endif
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(5,6,2)
 #ifndef num_online_cpus
 #define num_online_cpus() smp_num_cpus
+#endif
 #endif
 
 #ifndef cpu_online
@@ -2576,7 +2579,7 @@ extern void _kc_pci_disable_link_state(struct pci_dev *dev, int state);
 #define pci_disable_link_state(p, s) _kc_pci_disable_link_state(p, s)
 #else /* < 2.6.26 */
 #define NETDEV_CAN_SET_GSO_MAX_SIZE
-#include <linux/pci-aspm.h>
+//#include <linux/pci-aspm.h>
 #define HAVE_NETDEV_VLAN_FEATURES
 #ifndef PCI_EXP_LNKCAP_ASPMS
 #define PCI_EXP_LNKCAP_ASPMS 0x00000c00 /* ASPM Support */
