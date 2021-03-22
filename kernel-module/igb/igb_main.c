@@ -7404,7 +7404,7 @@ static bool igb_clean_tx_irq(struct igb_q_vector *q_vector)
 			break;
 
 		/* prevent any other reads prior to eop_desc */
-		read_barrier_depends();
+		smp_rmb();
 
 		/* if DD is not set pending work has not been completed */
 		if (!(eop_desc->wb.status & cpu_to_le32(E1000_TXD_STAT_DD)))
@@ -9695,7 +9695,7 @@ static pci_ers_result_t igb_io_error_detected(struct pci_dev *pdev,
 			pci_write_config_dword(vfdev, 0xA8, 0x00008000);
 		}
 
-		pci_cleanup_aer_uncorrect_error_status(pdev);
+		pci_aer_clear_nonfatal_status(pdev); /* pci_cleanup_aer_uncorrect_error_status(pdev); */
 	}
 
 	/*
@@ -9755,7 +9755,7 @@ static pci_ers_result_t igb_io_slot_reset(struct pci_dev *pdev)
 		result = PCI_ERS_RESULT_RECOVERED;
 	}
 
-	pci_cleanup_aer_uncorrect_error_status(pdev);
+	pci_aer_clear_nonfatal_status(pdev); /* pci_cleanup_aer_uncorrect_error_status(pdev); */
 
 	return result;
 }

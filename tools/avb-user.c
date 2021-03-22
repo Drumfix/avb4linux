@@ -1503,7 +1503,7 @@ int main(int argc, char **argv)
    printf("Setting samplerate to %d.\n", samplerate);
 
    /* set samplingrate */
-
+/*
    struct jdksavdecc_aem_command_set_sampling_rate aem_cmd;
 
    aem_cmd.aem_header.aecpdu_header.header.cd = 1;
@@ -1533,6 +1533,7 @@ int main(int argc, char **argv)
    sleep(5);
 
    printf("Done setting samplerate.\n");
+*/
 
    if (sock >= 0)
    {
