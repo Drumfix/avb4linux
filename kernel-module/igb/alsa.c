@@ -709,7 +709,7 @@ void snd_avb_receive(struct igb_adapter *adapter)
             int count1 = samples_per_packet;
             int count2 = 0;
 
-            //printk(KERN_INFO "tmp = %d, oldpptr = %d, buffersize %d\n", tmp, oldpptr, adapter->playback_buffer_size);
+            //printk(KERN_INFO "tmp1 = %d, oldpptr = %d, pbuffersize %d\n", tmp1, oldpptr, adapter->playback_buffer_size);
 
             if (playback && (tmp1+samples_per_packet > adapter->playback_buffer_size))
             {
