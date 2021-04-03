@@ -27,7 +27,7 @@ u8 channels = 8;
 #define MAXPACKETSIZE 1024
 #define MAXDESCRIPTORS 256
 #define LAUNCH_OFFSET 125000  /* nanoseconds */
-#define PRESENTATION_TIME_OFFSET -375000  /* nanoseconds */
+#define PRESENTATION_TIME_OFFSET 0  /* nanoseconds */
 
 /* hardware definition */
 
@@ -280,7 +280,7 @@ static int snd_avb_pcm_playback_trigger(struct snd_pcm_substream *substream,
                 break;
         case SNDRV_PCM_TRIGGER_STOP:
                 adapter->playback = 0;
-                msleep(1);
+                udelay(300);
                 break;
         default:
                 return -EINVAL;
@@ -300,7 +300,7 @@ static int snd_avb_pcm_capture_trigger(struct snd_pcm_substream *substream,
                 break;
         case SNDRV_PCM_TRIGGER_STOP:
                 adapter->capture = 0;
-                msleep(1);
+                udelay(300);
                 break;
         default:
                 return -EINVAL;
@@ -555,9 +555,10 @@ error:
 
 void snd_avb_remove(struct igb_adapter *adapter)
 {
-
         adapter->capture = 0;
         adapter->playback = 0;
+
+        udelay(300);
 
         igb_clear_flex_filter(adapter, 0);
 
@@ -626,7 +627,7 @@ void snd_avb_receive(struct igb_adapter *adapter)
         }
      }
 
-//     kernel_fpu_begin(); // possibly later use SSE/AVX optimised convertion here
+//     kernel_fpu_begin(); // possibly later use SSE/AVX optimised conversion here
 
      while (rx_desc[tmp].wb.upper.status_error & 1)
      {
