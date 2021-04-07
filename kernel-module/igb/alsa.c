@@ -463,17 +463,35 @@ int snd_avb_probe(struct igb_adapter *adapter, int samplerate)
         switch (samplerate)
         {
            case 44100:
+               adapter->samples_per_packet = 6;
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_44100;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_44100;
+               break;
            case 48000:
-             adapter->samples_per_packet = 6;
-             break;
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_48000;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_48000;
+               adapter->samples_per_packet = 6;
+               break;
            case 88200:
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_88200;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_88200;
+               adapter->samples_per_packet = 12;
+               break;
            case 96000:
-             adapter->samples_per_packet = 12;
-             break;
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_96000;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_96000;
+               adapter->samples_per_packet = 12;
+               break;
            case 176400:
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_176400;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_176400;
+               adapter->samples_per_packet = 24;
+               break;
            case 192000:
-             adapter->samples_per_packet = 24;
-             break;
+               snd_avb_playback_hw.rates = SNDRV_PCM_RATE_192000;
+               snd_avb_capture_hw.rates = SNDRV_PCM_RATE_192000;
+               adapter->samples_per_packet = 24;
+               break;
            default:
              printk(KERN_ERR "Invalid sample rate %d\n", samplerate);
              return -1;
