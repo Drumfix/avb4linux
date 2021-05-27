@@ -66,7 +66,8 @@ endif
 
 # Kernel Search Path
 # All the places we look for kernel source
-KSP :=  /lib/modules/$(BUILD_KERNEL)/build \
+KSP :=  /usr/src/linux-headers-$(BUILD_KERNEL) \
+        /lib/modules/$(BUILD_KERNEL)/build \
         /lib/modules/$(BUILD_KERNEL)/source \
         /usr/src/linux-$(BUILD_KERNEL) \
         /usr/src/linux-$($(BUILD_KERNEL) | sed 's/-.*//') \
@@ -76,8 +77,8 @@ KSP :=  /lib/modules/$(BUILD_KERNEL)/build \
         /usr/src/linux
 
 # prune the list down to only values that exist
-# and have an include/linux sub-directory
-test_dir = $(shell test -e $(dir)/include/linux && echo $(dir))
+# and have an include sub-directory
+test_dir = $(shell test -e $(dir)/include && echo $(dir))
 KSP := $(foreach dir, $(KSP), $(test_dir))
 
 # we will use this first valid entry in the search path
