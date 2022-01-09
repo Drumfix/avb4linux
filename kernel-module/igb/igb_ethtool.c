@@ -2189,8 +2189,15 @@ static int igb_phys_id(struct net_device *netdev, u32 data)
 }
 #endif /* HAVE_ETHTOOL_SET_PHYS_ID */
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+static int igb_set_coalesce(struct net_device *netdev,
+			    struct ethtool_coalesce *ec,
+			    struct kernel_ethtool_coalesce *kernel_coal,
+			    struct netlink_ext_ack *extack)
+#else
 static int igb_set_coalesce(struct net_device *netdev,
 			    struct ethtool_coalesce *ec)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 	int i;
@@ -2271,8 +2278,15 @@ static int igb_set_coalesce(struct net_device *netdev,
 	return 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,0)
+static int igb_get_coalesce(struct net_device *netdev,
+			    struct ethtool_coalesce *ec,
+			    struct kernel_ethtool_coalesce *kernel_coal,
+			    struct netlink_ext_ack *extack)
+#else
 static int igb_get_coalesce(struct net_device *netdev,
 			    struct ethtool_coalesce *ec)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 
