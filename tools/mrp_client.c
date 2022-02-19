@@ -91,11 +91,10 @@ int process_mrp_msg(char *buf, int buflen)
 	 * 1st character indicates application
 	 * [MVS] - MAC, VLAN or STREAM
 	 */
-	int i, j, k, l;
-        unsigned int id;
-	unsigned int substate;
+	int i=0, j=0, k=0, l=0;
+        unsigned int id=0;
+	unsigned int substate=0;
 
-	k = 0;
  next_line:if (k >= buflen)
 		return 0;
 
