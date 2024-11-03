@@ -1070,8 +1070,15 @@ static void igb_get_drvinfo(struct net_device *netdev,
 	drvinfo->eedump_len = igb_get_eeprom_len(netdev);
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)
+static void igb_get_ringparam(struct net_device *netdev,
+			      struct ethtool_ringparam *ring,
+			      struct kernel_ethtool_ringparam *kernel_ring,
+			      struct netlink_ext_ack *extack)
+#else
 static void igb_get_ringparam(struct net_device *netdev,
 			      struct ethtool_ringparam *ring)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 
@@ -1085,8 +1092,15 @@ static void igb_get_ringparam(struct net_device *netdev,
 	ring->rx_jumbo_pending = 0;
 }
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,17,0)
 static int igb_set_ringparam(struct net_device *netdev,
-			     struct ethtool_ringparam *ring)
+			      struct ethtool_ringparam *ring,
+			      struct kernel_ethtool_ringparam *kernel_ring,
+			      struct netlink_ext_ack *extack)
+#else
+static int igb_set_ringparam(struct net_device *netdev,
+			      struct ethtool_ringparam *ring)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 	struct igb_ring *temp_ring;
@@ -2424,8 +2438,13 @@ static void igb_get_strings(struct net_device *netdev, u32 stringset, u8 *data)
 }
 
 #ifdef HAVE_ETHTOOL_GET_TS_INFO
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,11,0)
+static int igb_get_ts_info(struct net_device *dev,
+			   struct kernel_ethtool_ts_info *info)
+#else
 static int igb_get_ts_info(struct net_device *dev,
 			   struct ethtool_ts_info *info)
+#endif
 {
 	struct igb_adapter *adapter = netdev_priv(dev);
 
@@ -2767,8 +2786,7 @@ static int igb_get_eee(struct net_device *netdev, struct ethtool_eee *edata)
 #endif
 
 #ifdef ETHTOOL_SEEE
-static int igb_set_eee(struct net_device *netdev,
-		       struct ethtool_eee *edata)
+static int igb_set_eee(struct net_device *netdev, struct ethtool_eee *edata)
 {
 	struct igb_adapter *adapter = netdev_priv(netdev);
 	struct e1000_hw *hw = &adapter->hw;
@@ -3403,24 +3421,24 @@ static const struct ethtool_ops igb_ethtool_ops = {
 #endif /* ETHTOOL_GADV_COAL */
 #ifndef HAVE_RHEL6_ETHTOOL_OPS_EXT_STRUCT
 #ifdef ETHTOOL_GEEE
-	.get_eee		= igb_get_eee,
+/*	.get_eee		= igb_get_eee,*/
 #endif
 #ifdef ETHTOOL_SEEE
-	.set_eee		= igb_set_eee,
+/*	.set_eee		= igb_set_eee,*/
 #endif
 #ifdef ETHTOOL_GRXFHINDIR
 #ifdef HAVE_ETHTOOL_GRXFHINDIR_SIZE
 	.get_rxfh_indir_size	= igb_get_rxfh_indir_size,
 #endif /* HAVE_ETHTOOL_GRSFHINDIR_SIZE */
 #if (defined(ETHTOOL_GRSSH) && !defined(HAVE_ETHTOOL_GSRSSH))
-	.get_rxfh		= igb_get_rxfh,
+/*	.get_rxfh		= igb_get_rxfh, */
 #else
 	.get_rxfh_indir		= igb_get_rxfh_indir,
 #endif /* HAVE_ETHTOOL_GSRSSH */
 #endif /* ETHTOOL_GRXFHINDIR */
 #ifdef ETHTOOL_SRXFHINDIR
 #if (defined(ETHTOOL_GRSSH) && !defined(HAVE_ETHTOOL_GSRSSH))
-	.set_rxfh		= igb_set_rxfh,
+/*	.set_rxfh		= igb_set_rxfh, */
 #else
 	.set_rxfh_indir		= igb_set_rxfh_indir,
 #endif /* HAVE_ETHTOOL_GSRSSH */
@@ -3443,8 +3461,9 @@ static const struct ethtool_ops_ext igb_ethtool_ops_ext = {
 	.size			= sizeof(struct ethtool_ops_ext),
 	.get_ts_info		= igb_get_ts_info,
 	.set_phys_id		= igb_set_phys_id,
-	.get_eee		= igb_get_eee,
+/*	.get_eee		= igb_get_eee,
 	.set_eee		= igb_set_eee,
+*/
 #ifdef HAVE_ETHTOOL_GRXFHINDIR_SIZE
 	.get_rxfh_indir_size	= igb_get_rxfh_indir_size,
 #endif /* HAVE_ETHTOOL_GRSFHINDIR_SIZE */

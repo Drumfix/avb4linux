@@ -31,6 +31,25 @@
 
 struct e1000_hw;
 
+u32 igb_rd32(struct e1000_hw *hw, u32 reg);
+
+/* write operations, indexed using DWORDS */
+#define wr32(reg, val) \
+do { \
+	u8 __iomem *hw_addr = READ_ONCE((hw)->hw_addr); \
+	if (!E1000_REMOVED(hw_addr)) \
+		writel((val), &hw_addr[(reg)]); \
+} while (0)
+
+#define rd32(reg) (igb_rd32(hw, reg))
+
+#define wrfl() ((void)rd32(E1000_STATUS))
+
+#define array_wr32(reg, offset, value) \
+	wr32((reg) + ((offset) << 2), (value))
+
+#define array_rd32(reg, offset) (igb_rd32(hw, reg + ((offset) << 2)))
+
 #define E1000_DEV_ID_82576			0x10C9
 #define E1000_DEV_ID_82576_FIBER		0x10E6
 #define E1000_DEV_ID_82576_SERDES		0x10E7

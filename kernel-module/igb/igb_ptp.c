@@ -38,6 +38,7 @@
 
 #define INCVALUE_MASK		0x7fffffff
 #define ISGN			0x80000000
+#define IGB_82580_BASE_PERIOD		0x800000000
 
 /*
  * The 82580 timesync updates the system timer every 8ns by 8ns,
@@ -222,6 +223,40 @@ static void igb_ptp_systim_to_hwtstamp(struct igb_adapter *adapter,
 /*
  * PTP clock operations
  */
+
+static int igb_ptp_adjfine_82576(struct ptp_clock_info *ptp, long scaled_ppm)
+{
+	struct igb_adapter *igb = container_of(ptp, struct igb_adapter,
+					       ptp_caps);
+	struct e1000_hw *hw = &igb->hw;
+	u64 incvalue;
+
+	incvalue = adjust_by_scaled_ppm(INCVALUE_82576, scaled_ppm);
+
+	wr32(E1000_TIMINCA, INCPERIOD_82576 | (incvalue & INCVALUE_82576_MASK));
+
+	return 0;
+}
+
+static int igb_ptp_adjfine_82580(struct ptp_clock_info *ptp, long scaled_ppm)
+{
+	struct igb_adapter *igb = container_of(ptp, struct igb_adapter,
+					       ptp_caps);
+	struct e1000_hw *hw = &igb->hw;
+	bool neg_adj;
+	u64 rate;
+	u32 inca;
+
+	neg_adj = diff_by_scaled_ppm(IGB_82580_BASE_PERIOD, scaled_ppm, &rate);
+
+	inca = rate & INCVALUE_MASK;
+	if (neg_adj)
+		inca |= ISGN;
+
+	wr32(E1000_TIMINCA, inca);
+
+	return 0;
+}
 
 static int igb_ptp_adjfreq_82576(struct ptp_clock_info *ptp, s32 ppb)
 {
@@ -1142,7 +1177,8 @@ void igb_ptp_init(struct igb_adapter *adapter)
 		adapter->ptp_caps.max_adj = 999999881;
 		adapter->ptp_caps.n_ext_ts = 0;
 		adapter->ptp_caps.pps = 0;
-		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82576;
+		adapter->ptp_caps.adjfine = igb_ptp_adjfine_82576;
+//		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82576;
 		adapter->ptp_caps.adjtime = igb_ptp_adjtime_82576;
 #ifdef HAVE_PTP_CLOCK_INFO_GETTIME64
 		adapter->ptp_caps.gettime64 = igb_ptp_gettime64_82576;
@@ -1168,7 +1204,8 @@ void igb_ptp_init(struct igb_adapter *adapter)
 		adapter->ptp_caps.max_adj = 62499999;
 		adapter->ptp_caps.n_ext_ts = 0;
 		adapter->ptp_caps.pps = 0;
-		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82580;
+		adapter->ptp_caps.adjfine = igb_ptp_adjfine_82580;
+//		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82580;
 		adapter->ptp_caps.adjtime = igb_ptp_adjtime_82576;
 #ifdef HAVE_PTP_CLOCK_INFO_GETTIME64
 		adapter->ptp_caps.gettime64 = igb_ptp_gettime64_82576;
@@ -1208,7 +1245,8 @@ void igb_ptp_init(struct igb_adapter *adapter)
 #ifdef HAVE_PTP_1588_CLOCK_PINS
 		adapter->ptp_caps.pin_config = adapter->sdp_config;
 #endif /* HAVE_PTP_1588_CLOCK_PINS */
-		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82580;
+		adapter->ptp_caps.adjfine = igb_ptp_adjfine_82580;
+//		adapter->ptp_caps.adjfreq = igb_ptp_adjfreq_82580;
 		adapter->ptp_caps.adjtime = igb_ptp_adjtime_i210;
 #ifdef HAVE_PTP_CLOCK_INFO_GETTIME64
 		adapter->ptp_caps.gettime64 = igb_ptp_gettime64_i210;

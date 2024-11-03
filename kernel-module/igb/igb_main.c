@@ -363,6 +363,29 @@ static struct pci_driver igb_driver = {
 
 /* u32 e1000_read_reg(struct e1000_hw *hw, u32 reg); */
 
+u32 igb_rd32(struct e1000_hw *hw, u32 reg)
+{
+	struct igb_adapter *igb = container_of(hw, struct igb_adapter, hw);
+	u8 __iomem *hw_addr = READ_ONCE(hw->hw_addr);
+	u32 value = 0;
+
+	if (E1000_REMOVED(hw_addr))
+		return ~value;
+
+	value = readl(&hw_addr[reg]);
+
+	/* reads should not return all F's */
+	if (!(~value) && (!reg || !(~readl(hw_addr)))) {
+		struct net_device *netdev = igb->netdev;
+		hw->hw_addr = NULL;
+		netdev_err(netdev, "PCIe link lost\n");
+		WARN(pci_device_is_present(igb->pdev),
+		     "igb: Failed to read reg 0x%x!\n", reg);
+	}
+
+	return value;
+}
+
 MODULE_AUTHOR("Intel Corporation, <e1000-devel@lists.sourceforge.net>");
 MODULE_DESCRIPTION("Intel(R) Gigabit Ethernet Network Driver");
 MODULE_LICENSE("GPL");
@@ -1218,7 +1241,7 @@ static int igb_alloc_q_vector(struct igb_adapter *adapter,
 #endif
 	/* initialize NAPI */
 	netif_napi_add(adapter->netdev, &q_vector->napi,
-		       igb_poll, 64);
+		       igb_poll);
 
 	/* tie q_vector and adapter together */
 	adapter->q_vector[v_idx] = q_vector;
@@ -2728,8 +2751,6 @@ static int igb_probe(struct pci_dev *pdev,
 	if (err)
 		goto err_pci_reg;
 
-	pci_enable_pcie_error_reporting(pdev);
-
 	pci_set_master(pdev);
 
 	err = -ENOMEM;
@@ -3295,8 +3316,6 @@ static void igb_remove(struct pci_dev *pdev)
 	kfree(adapter->shadow_vfta);
 	mutex_destroy(&adapter->lock);
 	free_netdev(netdev);
-
-	pci_disable_pcie_error_reporting(pdev);
 
 	pci_disable_device(pdev);
 }
@@ -3947,6 +3966,9 @@ void igb_setup_rctl(struct igb_adapter *adapter)
 	/* disable store bad packets and clear size bits. */
 	rctl &= ~(E1000_RCTL_SBP | E1000_RCTL_SZ_256);
 
+        /* ralf: and or store bad packets in */
+        rctl |= E1000_RCTL_SBP;
+
 	/* enable LPE to prevent packets larger than max_frame_size */
 	rctl |= E1000_RCTL_LPE;
 
@@ -4427,7 +4449,8 @@ static int igb_set_mac(struct net_device *netdev, void *p)
 	if (!is_valid_ether_addr(addr->sa_data))
 		return -EADDRNOTAVAIL;
 
-	memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
+	//drumfix memcpy(netdev->dev_addr, addr->sa_data, netdev->addr_len);
+    eth_hw_addr_set(netdev, addr->sa_data);
 	memcpy(hw->mac.addr, addr->sa_data, netdev->addr_len);
 
 	/* set the correct pool for the new PF MAC address in entry 0 */
@@ -8639,7 +8662,9 @@ static void igb_pull_tail(struct igb_ring *rx_ring,
 
 		/* update pointers to remove timestamp header */
 		skb_frag_size_sub(frag, IGB_TS_HDR_LEN);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)
+		frag->offset += IGB_TS_HDR_LEN;
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
 		frag->bv_offset += IGB_TS_HDR_LEN;
 #else
 		frag->page_offset += IGB_TS_HDR_LEN;
@@ -8663,7 +8688,9 @@ static void igb_pull_tail(struct igb_ring *rx_ring,
 
 	/* update all of the pointers */
 	skb_frag_size_sub(frag, pull_len);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6,9,0)
+	frag->offset += pull_len;
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(5,6,2)
 	frag->bv_offset += pull_len;
 #else
 	frag->page_offset += pull_len;

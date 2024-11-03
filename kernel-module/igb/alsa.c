@@ -27,7 +27,7 @@ u8 channels = 8;
 #define MAXPACKETSIZE 1024
 #define MAXDESCRIPTORS 256
 #define LAUNCH_OFFSET 125000  /* nanoseconds */
-#define PRESENTATION_TIME_OFFSET 0  /* nanoseconds */
+#define PRESENTATION_TIME_OFFSET 300000  /* nanoseconds */
 
 /* hardware definition */
 
@@ -403,7 +403,7 @@ static int snd_avb_new_pcm(struct igb_adapter *adapter)
 
         snd_pcm_lib_preallocate_pages_for_all
             (pcm, SNDRV_DMA_TYPE_CONTINUOUS, 
-             snd_dma_continuous_data(GFP_KERNEL),
+             NULL,
              64*1024, 64*1024);
 
         printk(KERN_INFO "alloc tx new pcm avb\n");
